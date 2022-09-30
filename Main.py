@@ -28,8 +28,7 @@ def attention_3d_block(inputs):
         a = RepeatVector(input_dim)(a)
     a_probs = Permute((1, 2), name='attention_vec')(a)
 
-    output_attention_mul = merge([inputs, a_probs], name='attention_mul', mode='mul')
-    return output_attention_mul
+    return merge([inputs, a_probs], name='attention_mul', mode='mul')
 
 # 注意力机制的另一种写法 适合上述报错使用 来源:https://blog.csdn.net/uhauha2929/article/details/80733255
 def attention_3d_block2(inputs, single_attention_vector=False):
@@ -44,11 +43,7 @@ def attention_3d_block2(inputs, single_attention_vector=False):
         a = RepeatVector(input_dim)(a)
 
     a_probs = Permute((2, 1))(a)
-    # 乘上了attention权重，但是并没有求和，好像影响不大
-    # 如果分类任务，进行Flatten展开就可以了
-    # element-wise
-    output_attention_mul = Multiply()([inputs, a_probs])
-    return output_attention_mul
+    return Multiply()([inputs, a_probs])
 
 
 
@@ -74,7 +69,7 @@ def NormalizeMult(data):
 
     normalize = normalize.reshape(data.shape[1],2)
     print(normalize.shape)
-    for i in range(0,data.shape[1]):
+    for i in range(data.shape[1]):
         #第i列
         list = data[:,i]
         listlow,listhigh =  np.percentile(list, [0, 100])
@@ -84,7 +79,7 @@ def NormalizeMult(data):
         delta = listhigh - listlow
         if delta != 0:
             #第j行
-            for j in range(0,data.shape[0]):
+            for j in range(data.shape[0]):
                 data[j,i]  =  (data[j,i] - listlow)/delta
     #np.save("./normalize.npy",normalize)
     return  data,normalize
@@ -92,13 +87,13 @@ def NormalizeMult(data):
 #多维反归一化
 def FNormalizeMult(data,normalize):
     data = np.array(data)
-    for i in  range(0,data.shape[1]):
+    for i in range(data.shape[1]):
         listlow =  normalize[i,0]
         listhigh = normalize[i,1]
         delta = listhigh - listlow
         if delta != 0:
             #第j行
-            for j in range(0,data.shape[0]):
+            for j in range(data.shape[0]):
                 data[j,i]  =  data[j,i]*delta + listlow
 
     return data
@@ -118,8 +113,7 @@ def attention_model():
     attention_mul = Flatten()(attention_mul)
 
     output = Dense(1, activation='sigmoid')(attention_mul)
-    model = Model(inputs=[inputs], outputs=output)
-    return model
+    return Model(inputs=[inputs], outputs=output)
 
 
 
